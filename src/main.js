@@ -4,7 +4,6 @@ import "izitoast/dist/css/iziToast.min.css";
 import { lightbox, refs, renderPictures, showLoader, hideLoader, showButton, hideButton, scrollGalerryCard } from "./js/render-functions";
 import { searchParams, getPictures } from "./js/pixabay-api";
 
-
 hideLoader();
 hideButton();
 
@@ -16,13 +15,17 @@ async function handlerSearch(event) {
     refs.gallery.innerHTML = "";
     
     const form = event.currentTarget;
-    searchParams.q = form.elements.searchtext.value.trim();
+    const newQuery = form.elements.searchtext.value.trim();
 
-    if (!searchParams.q) {
+    if (!newQuery) {
         noRequestError();
         hideButton();
         return;
     }
+
+    // Reset page to 1 when search query changes
+    searchParams.page = 1;
+    searchParams.q = newQuery;
 
     showLoader();
 
@@ -41,7 +44,7 @@ async function handlerSearch(event) {
             noImagesError();
         }
     } catch (error) {
-        noImagesError;
+        noImagesError();
     } finally {
         refs.searchForm.reset();
     }
@@ -62,10 +65,11 @@ async function handlerLoadMore() {
         lightbox.refresh();
         scrollGalerryCard();
     } catch (error) {
-        noImagesError;
+        noImagesError();
     } finally {
+        // Check if current page is equal to maxPage
         if (searchParams.page === searchParams.maxPage) {
-            hideButton();
+            hideButton(); // Hide the Load More button
             endSearchMessage();
             refs.loadMoreBtn.removeEventListener("click", handlerLoadMore);
         }
